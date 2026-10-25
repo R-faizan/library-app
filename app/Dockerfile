@@ -8,7 +8,7 @@
 FROM python:3.12-slim
 
 # 2. Metadata about the image
-LABEL maintainer="<YOUR NAME> <YOUR REG NO>" \
+LABEL maintainer="rai faizan qasim fa23-bse-154" \
       course="CSC418 DevOps for Cloud Computing" \
       app="library-web"
 
