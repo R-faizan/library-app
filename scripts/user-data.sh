@@ -1,14 +1,9 @@
 #!/bin/bash
 # ---------------------------------------------------------------------------
 # EC2 USER DATA for the Launch Template (Amazon Linux 2023)
-# Runs automatically as root the FIRST time every new instance boots.
-# Because the Auto Scaling Group launches instances from this template,
-# every new instance installs Docker and starts the app by itself.
-#
-# >>> CHANGE REPO_URL to YOUR GitHub repository before using it <<<
-# Log of this script on the instance:  /var/log/user-data.log
+
 # ---------------------------------------------------------------------------
-REPO_URL="https://github.com/<your-github-username>/library-app.git"
+REPO_URL="https://github.com/R-faizan/library-app.git"
 APP_DIR="/opt/library-app"
 
 exec > /var/log/user-data.log 2>&1
