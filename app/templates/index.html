@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Book Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1 id="app-title">Library Book Manager</h1>
+    <p class="sub">CSC418 DevOps for Cloud Computing &middot; Mid-Term Lab &middot; <span id="student">{{ student }}</span></p>
+  </header>
+
+  <section class="infra" id="infra-info">
+    <div><span>EC2 instance</span><strong id="instance-id">{{ instance_id }}</strong></div>
+    <div><span>Container</span><strong id="container-id">{{ container }}</strong></div>
+    <div><span>Database</span><strong id="db-engine">{{ db_engine }}</strong></div>
+    <div><span>Version</span><strong>{{ version }}</strong></div>
+  </section>
+
+  <main>
+    <form id="add-form" action="/add" method="post">
+      <input id="title" name="title" placeholder="Book title" required>
+      <input id="author" name="author" placeholder="Author" required>
+      <button id="add-btn" type="submit">Add Book</button>
+    </form>
+
+    <table id="books-table">
+      <thead><tr><th>#</th><th>Title</th><th>Author</th><th></th></tr></thead>
+      <tbody>
+      {% for b in books %}
+        <tr class="book-row">
+          <td>{{ b.id }}</td>
+          <td class="book-title">{{ b.title }}</td>
+          <td class="book-author">{{ b.author }}</td>
+          <td>
+            <form action="/delete/{{ b.id }}" method="post">
+              <button class="del" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="empty">No books yet. Add one above.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="count" id="book-count">Total books: {{ books|length }}</p>
+  </main>
+</body>
+</html>

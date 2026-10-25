@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# Library Book Manager - multi-container application
+#   web : Flask/Gunicorn app built from ./app/Dockerfile
+#   db  : MySQL 8 with data stored in the named volume "mysql_data"
+# Start:   docker compose up -d --build
+# Status:  docker compose ps
+# Stop:    docker compose down        (volume is KEPT -> data survives)
+# Wipe:    docker compose down -v     (volume is DELETED -> data lost)
+# ---------------------------------------------------------------------------
+name: library
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: library-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    # small memory settings so MySQL fits on a t2.micro / t3.micro instance
+    command: ["--innodb-buffer-pool-size=64M", "--performance-schema=OFF"]
+    volumes:
+      - mysql_data:/var/lib/mysql                         # named volume = persistence
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # seed data (first run only)
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # NOTE: no "ports:" -> the database is NOT exposed to the internet,
+    #       only the web container can reach it over the backend network.
+
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: library-web:1.0
+    container_name: library-web
+    restart: unless-stopped
+    environment:
+      DB_HOST: db                 # service name -> resolved by Docker's internal DNS
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_VERSION: "1.0"
+      STUDENT: ${STUDENT}
+    ports:
+      - "80:5000"                 # host port 80 (Load Balancer target) -> container port 5000
+    depends_on:
+      db:
+        condition: service_healthy   # wait until MySQL answers before starting web
+    networks:
+      - backend
+
+volumes:
+  mysql_data:                     # Docker-managed named volume
+
+networks:
+  backend:
+    driver: bridge
